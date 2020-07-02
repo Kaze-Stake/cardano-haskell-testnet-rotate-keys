@@ -61,7 +61,7 @@ then
         tmux new-session -d -s $SESSION "sh $NODE_PATH/startBlockProducingNode.sh"
     fi
 else
-    # If it is not yet time to rotate the KES keys; log the remaining time to the file timeLeft.sh
+    # If it is not yet time to rotate the KES keys; log the remaining time to the file timeLeft.txt
     TIME_LEFT=$(expr 3600 \* $RENEW_KES_PERIOD - $CURRENT_SLOT)
     DAYS_LEFT=$(expr $TIME_LEFT / 86400)
     HOURS_LEFT=$(expr $TIME_LEFT / 3600)
