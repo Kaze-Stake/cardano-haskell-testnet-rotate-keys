@@ -7,6 +7,9 @@
 #
 # Place this file in a folder named "rotate-keys" inside your cardano-node user home folder.
 
+# Runs the block producing node using port 3000 by default
+PORT=3000
+
 # Define path variables
 THIS_PATH="$HOME/rotate-keys"
 NODE_PATH="$HOME/cardano-my-node"
@@ -14,10 +17,6 @@ COLD_PATH="$HOME/cold-keys"
 
 # Export the relevant socket path
 export CARDANO_NODE_SOCKET_PATH="$NODE_PATH/db/socket"
-
-# Runs the block producing node in a tmux session and uses port 3000 by default
-SESSION="block_producer"
-PORT=3000
 
 # Calculates the current slot, the current KES period, and the next KES period to rotate the keys
 CURRENT_SLOT=$(/usr/local/bin/cardano-cli shelley query tip --testnet-magic 42 | grep -oP 'SlotNo = \K\d+')
@@ -37,13 +36,7 @@ chmod a-rwx $COLD_PATH
 # Saves the next KES period to the file renewPeriod.txt
 echo "$NEXT_KES_PERIOD" > "$THIS_PATH/renewPeriod.txt"
 
-# Kill the block producing node and restarts it in a new tmux session
-kill $(lsof -i:$PORT -sTCP:LISTEN)
-tmux has-session -t $SESSION 2>/dev/null
-if [ $? != 0 ]
-then
-    tmux new-session -d -s $SESSION "sh $NODE_PATH/startBlockProducingNode.sh"
-else
-    tmux kill-session -t $SESSION
-    tmux new-session -d -s $SESSION "sh $NODE_PATH/startBlockProducingNode.sh"
-fi
+# Kill the block producing node and restarts it with the script startBlockProducingNode.sh
+# https://github.com/Kaze-Stake/cardano-haskell-testnet-automatic-startup/blob/master/startBlockProducingNode.sh
+kill $(lsof -i:$PORT -sTCP:LISTEN) &>/dev/null
+/usr/bin/bash $NODE_PATH/startBlockProducingNode.sh
