@@ -11,13 +11,16 @@
 
 # Define path variables
 THIS_PATH="$HOME/rotate-keys"
+NODE_PATH="$HOME/cardano-my-node"
+GENESIS_PATH="$NODE_PATH/mainnet_candidate-shelley-genesis.json"
 
 # Export the relevant socket path
 export CARDANO_NODE_SOCKET_PATH="$HOME/cardano-my-node/db/socket"
 
 # Calculates the current slot, the current KES period, and the next KES period to rotate the keys
-CURRENT_SLOT=$(/usr/local/bin/cardano-cli shelley query tip --testnet-magic 42 | grep -oP 'SlotNo = \K\d+')
-KES_PERIOD=$(expr $CURRENT_SLOT / 3600)
+CURRENT_SLOT=$(cardano-cli shelley query tip --testnet-magic 42 | /usr/bin/grep -oP '"slotNo": \K\d+')
+SLOTS_PER_KES_PERIOD=$(cat $NODE_PATH/mainnet_candidate-shelley-genesis.json | /usr/bin/grep -oP '"slotsPerKESPeriod": \K\d+')
+KES_PERIOD=$(expr $CURRENT_SLOT / $SLOTS_PER_KES_PERIOD)
 NEXT_KES_PERIOD=$(expr $KES_PERIOD + 119)
 
 # Gets the previously logged KES period to know when it is time to renew

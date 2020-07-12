@@ -14,13 +14,15 @@ PORT=3000
 THIS_PATH="$HOME/rotate-keys"
 NODE_PATH="$HOME/cardano-my-node"
 COLD_PATH="$HOME/cold-keys"
+GENESIS_PATH="$NODE_PATH/mainnet_candidate-shelley-genesis.json"
 
 # Export the relevant socket path
 export CARDANO_NODE_SOCKET_PATH="$NODE_PATH/db/socket"
 
 # Calculates the current slot, the current KES period, and the next KES period to rotate the keys
-CURRENT_SLOT=$(/usr/local/bin/cardano-cli shelley query tip --testnet-magic 42 | grep -oP 'SlotNo = \K\d+')
-KES_PERIOD=$(expr $CURRENT_SLOT / 3600)
+CURRENT_SLOT=$(/usr/local/bin/cardano-cli shelley query tip --testnet-magic 42 | /usr/bin/grep -oP '"slotNo": \K\d+')
+SLOTS_PER_KES_PERIOD=$(cat $GENESIS_PATH | /usr/bin/grep -oP '"slotsPerKESPeriod": \K\d+')
+KES_PERIOD=$(expr $CURRENT_SLOT / $SLOTS_PER_KES_PERIOD)
 NEXT_KES_PERIOD=$(expr $KES_PERIOD + 119)
 
 # Unlocks the cold-keys path, rotates the KES keys, locks the cold-keys path
